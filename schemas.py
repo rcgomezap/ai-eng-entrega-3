@@ -1,20 +1,21 @@
-from enum import Enum
-from typing import List
+from typing import Literal
 
 from pydantic import BaseModel, Field
 
-class CriticityLevel(Enum):
-    LOW = "low"
-    MEDIUM = "medium"
-    HIGH = "high"
+CriticityLevel = Literal["baja", "media", "alta"]
 
 
-class TechnicalEntityChainInput(BaseModel):
-    input : str = Field(description="Entrada de texto para extraccion de entidades tecnicas")
+class TechnicalExtractionInput(BaseModel):
+    text: str = Field(description="Texto tecnico a analizar.", min_length=1)
 
 
-class TechnicalEntityChainOutput(BaseModel):
-    tecnologias : List[str] = Field(description="Tecnologias identificadas")
-    nivel_de_criticidad : CriticityLevel = Field(description="Nivel de criticidad")
-    resumen_tecnico : str = Field(description="Resumen tecnico")
-
+class TechnicalExtraction(BaseModel):
+    tecnologias: list[str] = Field(
+        description="Tecnologias, frameworks, servicios, bases de datos o herramientas mencionadas."
+    )
+    nivel_de_criticidad: CriticityLevel = Field(
+        description="Nivel de criticidad tecnica inferido: baja, media o alta."
+    )
+    resumen_tecnico: str = Field(
+        description="Resumen tecnico conciso del problema, arquitectura o hallazgo principal."
+    )
