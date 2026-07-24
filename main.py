@@ -5,6 +5,7 @@ load_dotenv()
 import asyncio
 import logging
 
+from clients import TechnicalExtractionError
 from chain import process_text
 from schemas import TechnicalExtractionInput
 
@@ -16,7 +17,17 @@ EXAMPLE_TEXT = (
 
 
 async def run_example() -> None:
-    result = await process_text(TechnicalExtractionInput(text=EXAMPLE_TEXT))
+    await print_extraction(TechnicalExtractionInput(text=EXAMPLE_TEXT))
+
+
+async def print_extraction(input_data: TechnicalExtractionInput) -> None:
+    try:
+        result = await process_text(input_data)
+    except TechnicalExtractionError as exc:
+        logging.getLogger(__name__).error("No se pudo completar la extraccion: %s", exc)
+        print(f"\nError: {exc}")
+        return
+
     print("\nSalida validada")
     print(result.model_dump_json(indent=2))
 
@@ -27,9 +38,7 @@ async def analyze_custom_text() -> None:
         print("No se ingreso texto.")
         return
 
-    result = await process_text(TechnicalExtractionInput(text=text))
-    print("\nSalida validada")
-    print(result.model_dump_json(indent=2))
+    await print_extraction(TechnicalExtractionInput(text=text))
 
 
 async def main() -> None:
@@ -37,6 +46,8 @@ async def main() -> None:
         level=logging.INFO,
         format="%(asctime)s %(levelname)s [%(name)s] %(message)s",
     )
+    logging.getLogger("httpx").setLevel(logging.WARNING)
+    logging.getLogger("openai").setLevel(logging.WARNING)
 
     while True:
         print("\nMenu principal")
@@ -56,4 +67,7 @@ async def main() -> None:
             print("Opcion invalida. Intenta de nuevo.")
 
 if __name__ == "__main__":
-    asyncio.run(main())
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print("\nEjecucion interrumpida por el usuario.")

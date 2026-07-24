@@ -1,3 +1,5 @@
+import asyncio
+
 from clients import LCELTechnicalExtractionClient, TechnicalExtractionClient
 from schemas import TechnicalExtraction, TechnicalExtractionInput
 
@@ -9,6 +11,9 @@ async def process_text(input_data: TechnicalExtractionInput) -> TechnicalExtract
 
 
 def call_chain(text: str) -> TechnicalExtraction:
-    import asyncio
+    try:
+        asyncio.get_running_loop()
+    except RuntimeError:
+        return asyncio.run(process_text(TechnicalExtractionInput(text=text)))
 
-    return asyncio.run(process_text(TechnicalExtractionInput(text=text)))
+    raise RuntimeError("call_chain() no puede usarse dentro de un event loop activo")
